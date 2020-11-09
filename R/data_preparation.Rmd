@@ -1,0 +1,35 @@
+---
+title: "Data preparation"
+author: "Frederik Heitmüller"
+date: "9 November 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(magrittr)
+```
+
+
+```{r positive profits}
+
+cbcr <- read_csv(here("data_raw/CBCR_TABLEI.csv"))
+cbcr %<>% filter(CBC == "PROFIT" | CBC == "TAX_ACCRUED")
+cbcr %<>% select(-Variable)
+cbcr %<>% pivot_wider(names_from= "CBC", values_from = "Value")
+cbcr %<>% filter(!is.na(PROFIT)&!is.na(TAX_ACCRUED))
+cbcr_sum <- cbcr %>% group_by(JUR, `Partner Jurisdiction`, Grouping) %>% summarise_at(vars("PROFIT", "TAX_ACCRUED"), .funs= sum)
+cbcr_sum %<>% mutate(effective_rate = TAX_ACCRUED / PROFIT)
+cbcr_sum %>% filter(JUR=="COL" & Grouping=="Sub-Groups with positive profits") %>% pull(effective_rate)
+cbcr %>% filter(JUR=="COL" & PAN=="PANELAI") %>% pull(`Ultimate Parent Jurisdiction`)
+cbcr_sum %>% filter(JUR=="IND" & Grouping=="Sub-Groups with positive profits") %>% pull(effective_rate)
+cbcr %>% filter(JUR=="IND" & PAN=="PANELAI") %>% pull(`Ultimate Parent Jurisdiction`)
+
+# those countries with low tax rates
+cbcr_sum %>% filter(Grouping=="Sub-Groups with positive profits" & effective_rate < 0.1 & effective_rate >= 0) %>% pull(`Partner Jurisdiction`)
+
+
+```
+
