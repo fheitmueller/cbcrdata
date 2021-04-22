@@ -10,16 +10,24 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
 library(magrittr)
+library(kableExtra)
+library(scales)
+library(WDI)
+library(ggpubr)
 ```
 
 
 ```{r positive profits}
 
 cbcr <- read_csv(here("data_raw/CBCR_TABLEI.csv"))
-cbcr %<>% filter(CBC == "PROFIT" | CBC == "TAX_ACCRUED")
+cbcr %<>% filter(CBC %in% c("PROFIT", "TAX_ACCRUED", "SUBGROUPS_COUNT"))
+world_bank <- WDI(start=2016, end=2016, extra=TRUE)
+cbcr %<>% left_join(world_bank[c("iso3c", "income")], by=c("JUR"="iso3c"))
 cbcr %<>% select(-Variable)
 cbcr %<>% pivot_wider(names_from= "CBC", values_from = "Value")
 cbcr %<>% filter(!is.na(PROFIT)&!is.na(TAX_ACCRUED))
+
+
 cbcr_sum <- cbcr %>% group_by(JUR, `Partner Jurisdiction`, Grouping) %>% summarise_at(vars("PROFIT", "TAX_ACCRUED"), .funs= sum)
 cbcr_sum %<>% mutate(effective_rate = TAX_ACCRUED / PROFIT)
 cbcr_sum %>% filter(JUR=="COL" & Grouping=="Sub-Groups with positive profits") %>% pull(effective_rate)
@@ -29,6 +37,50 @@ cbcr %>% filter(JUR=="IND" & PAN=="PANELAI") %>% pull(`Ultimate Parent Jurisdict
 
 # those countries with low tax rates
 cbcr_sum %>% filter(Grouping=="Sub-Groups with positive profits" & effective_rate < 0.1 & effective_rate >= 0) %>% pull(`Partner Jurisdiction`)
+
+
+cbcr_sum_pos <- cbcr_sum %>% filter(Grouping=="Sub-Groups with positive profits") %>% arrange(desc(effective_rate)) %>% 
+
+cbcr_sum_pos %>% select(`Partner Jurisdiction`, effective_rate) %>% mutate_at(.vars="effective_rate", percent) %>% kable(digits = 3)
+
+```
+
+
+```{r eatrs by jurisdiction pairs}
+
+cbcr_eatr <- cbcr %>% filter(Grouping =="Sub-Groups with positive profits") %>% mutate(effective_rate = TAX_ACCRUED / PROFIT)
+
+cbcr_eatr$`Partner Jurisdiction` %<>% recode("Lao People's Democratic Republic" = "Laos", "Democratic Republic of the Congo"="DRC", "Syrian Arab Republic"="Syria")
+
+## filter out subsidiaries in the home country
+
+cbcr_eatr %<>% filter(JUR!=COU)
+
+cbcr_eatr %<>% group_by(JUR) %>% mutate(total_subgroups = sum(SUBGROUPS_COUNT, na.rm=TRUE)) %>% mutate(total_parent_cou = n()) %>% ungroup()
+
+plot_parameters <- function(data, countrygroup){
+  #ggplot(data, aes(x=reorder(`Partner Jurisdiction`, effective_rate, FUN = median)))+
+  ggplot(filter(data, income==countrygroup&effective_rate>=0&effective_rate<1), aes(x=reorder(`Partner Jurisdiction`, total_subgroups)))+
+    geom_boxplot(aes(y=effective_rate))+
+    geom_text(aes(label=total_subgroups, y=1),check_overlap = TRUE)+
+    theme_pubclean()+
+    theme(axis.text.x=element_text(angle=90), axis.title.x=element_blank())+
+    geom_hline(aes(yintercept=0.21), color="red")+
+    labs(title = "Aggregate EATRs by MNE home country",
+         subtitle= paste(countrygroup, "host countries"),
+         caption= "Data from OECD Aggregate CbCR data, 2016, sub-groups with positive profits.\n Data is ordered by the number of MNE subgroups (i.e. the number of CbC reports) upon which the data is based.\n Number is not exact, since NA values are present. Data towards the right of the graph likely to be more reliable.\n Negative tax rates and rates above 100% have been removed.")
+}
+
+
+  
+plot_parameters(cbcr_eatr, "Low income")
+
+plot_parameters(cbcr_eatr, "Lower middle income")
+
+plot_parameters(cbcr_eatr, "Upper middle income")
+
+plot_parameters(cbcr_eatr, "High income")
+
 
 
 ```
