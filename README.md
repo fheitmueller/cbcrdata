@@ -10,7 +10,7 @@ taxes?”](http://globtaxgov.weblog.leidenuniv.nl/2021/06/10/are-g7-countries-do
 
 To reproduce the analysis, download the folder and execute the RMarkdown
 file
-[“R/minimum\_tax\_threshold.Rmd”](https://github.com/fheitmueller/cbcrdata/blob/main/R/data_exploration.Rmd).
+[“R/minimum\_tax\_threshold.Rmd”](https://github.com/fheitmueller/cbcrdata/blob/main/R/minimum_tax_threshold.Rmd).
 You need a recent version of [R](https://www.r-project.org/) and
 [RStudio](https://www.rstudio.com/).
 
@@ -122,3 +122,7 @@ plot_parameters(cbcr_etr, c("Low income", "Lower middle income"))
 ```
 
 ![](minimum_tax_threshold_files/figure-gfm/etrs%20by%20jurisdiction%20pairs-1.png)<!-- -->
+
+``` r
+ggsave("distribution_plot.png", dpi=1500)
+```
