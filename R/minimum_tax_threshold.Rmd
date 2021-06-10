@@ -102,6 +102,6 @@ plot_parameters <- function(data, countrygroup){
 
 plot_parameters(cbcr_etr, c("Low income", "Lower middle income"))
 
-
+ggsave("distribution_plot.png", dpi=1500)
 ```
 
