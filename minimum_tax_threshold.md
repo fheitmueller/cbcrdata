@@ -8,6 +8,12 @@ blogpost [“Are G7 countries doing developing countries a favour when
 levying global minimum
 taxes?”](http://globtaxgov.weblog.leidenuniv.nl/2021/06/10/are-g7-countries-doing-developing-countries-a-favour-when-levying-global-minimum-taxes/)
 
+To reproduce the analysis, download the folder and execute the RMarkdown
+file
+[“R/minimum\_tax\_threshold.Rmd”](https://github.com/fheitmueller/cbcrdata/blob/main/R/data_exploration.Rmd).
+You need a recent version of [R](https://www.r-project.org/) and
+[RStudio](https://www.rstudio.com/).
+
 The following R packages are used in the analysis:
 
 ``` r
