@@ -1,0 +1,54 @@
+---
+title: "explorations"
+author: "Frederik Heitmüller"
+date: "10 6 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(magrittr)
+library(kableExtra)
+library(scales)
+library(ggpubr)
+library(WDI)
+library(countrycode)
+```
+
+```{r}
+
+#reading in data
+cbcr <- read_csv(here("data_raw/CBCR_TABLEI.csv"))
+cbcr %<>% filter(CBC %in% c("PROFIT", "TAX_ACCRUED", "SUBGROUPS_COUNT"))
+
+# adding data on the World Bank income group classification of the investment-receiving jurisdictions, 
+world_bank <- WDI(start=2016, end=2016, extra=TRUE)
+cbcr %<>% left_join(world_bank[c("iso3c", "income")], by=c("JUR"="iso3c"))
+
+
+cbcr %<>% select(-Variable)
+cbcr %<>% pivot_wider(names_from= "CBC", values_from = "Value")
+
+# removing entries with either missing profit or tax accrued values.
+cbcr %<>% filter(!is.na(PROFIT)&!is.na(TAX_ACCRUED))
+
+
+cbcr_sum <- cbcr %>% group_by(JUR, `Partner Jurisdiction`, Grouping) %>% summarise_at(vars("PROFIT", "TAX_ACCRUED"), .funs= sum)
+cbcr_sum %<>% mutate(effective_rate = TAX_ACCRUED / PROFIT)
+cbcr_sum %>% filter(JUR=="COL" & Grouping=="Sub-Groups with positive profits") %>% pull(effective_rate)
+cbcr %>% filter(JUR=="COL" & PAN=="PANELAI") %>% pull(`Ultimate Parent Jurisdiction`)
+cbcr_sum %>% filter(JUR=="IND" & Grouping=="Sub-Groups with positive profits") %>% pull(effective_rate)
+cbcr %>% filter(JUR=="IND" & PAN=="PANELAI") %>% pull(`Ultimate Parent Jurisdiction`)
+
+# those countries with low tax rates
+cbcr_sum %>% filter(Grouping=="Sub-Groups with positive profits" & effective_rate < 0.1 & effective_rate >= 0) %>% pull(`Partner Jurisdiction`)
+
+
+cbcr_sum_pos <- cbcr_sum %>% filter(Grouping=="Sub-Groups with positive profits") %>% arrange(desc(effective_rate)) 
+
+cbcr_sum_pos %>% select(`Partner Jurisdiction`, effective_rate) %>% mutate_at(.vars="effective_rate", percent) %>% kable(digits = 3)
+
+```
+
