@@ -20,12 +20,10 @@ The following R packages are used in the analysis:
 installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
 ```
 
-    ## countrycode         WDI      ggpubr      scales    magrittr        here 
-    ##     "1.2.0"     "2.7.4"     "0.4.0"     "1.1.1"     "2.0.1"     "1.0.1" 
-    ##     forcats     stringr       dplyr       purrr       readr       tidyr 
-    ##     "0.5.1"     "1.4.0"     "1.0.6"     "0.3.4"     "1.4.0"     "1.1.3" 
-    ##      tibble     ggplot2   tidyverse 
-    ##     "3.1.2"     "3.3.3"     "1.3.1"
+    ## countrycode         WDI      ggpubr     ggplot2      scales    magrittr 
+    ##     "1.2.0"     "2.7.4"     "0.4.0"     "3.3.3"     "1.1.1"     "2.0.1" 
+    ##        here       dplyr       tidyr       readr 
+    ##     "1.0.1"     "1.0.6"     "1.1.3"     "1.4.0"
 
 The data source for the graph is aggregated country by country report
 data for the year 2016, downloaded from the [OECD

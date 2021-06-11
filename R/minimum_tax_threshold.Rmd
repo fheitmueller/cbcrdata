@@ -13,7 +13,9 @@ The following R packages are used in the analysis:
 
 ```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
+library(readr)
+library(tidyr)
+library(dplyr)
 library(here)
 library(magrittr)
 library(scales)
